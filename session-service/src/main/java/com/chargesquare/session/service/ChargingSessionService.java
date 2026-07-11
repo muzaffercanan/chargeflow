@@ -25,6 +25,7 @@ import com.chargesquare.session.repository.UserRepository;
 import com.chargesquare.session.repository.WalletRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class ChargingSessionService {
     private final CostCalculator costCalculator;
     private final Clock clock;
 
+    @Autowired
     public ChargingSessionService(
             ChargingSessionRepository sessionRepository,
             UserRepository userRepository,

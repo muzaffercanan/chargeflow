@@ -38,9 +38,9 @@ Status is intentionally conservative: an item is checked only when the correspon
 ## Tests
 
 - [x] Add the worked `12.5 * 8.50 + 2.00 = 108.25` cost test.
-- [ ] Add a start-to-stop lifecycle test.
+- [x] Add a start-to-stop lifecycle test.
 - [x] Add an invalid-case test.
-- [ ] Add persistence/integration coverage for the real database-backed flow.
+- [x] Add persistence/integration coverage for the real database-backed flow.
 - [x] Add Station Service endpoint and atomic-transition tests.
 
 ## Docker

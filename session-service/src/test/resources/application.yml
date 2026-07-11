@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:session_service_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1;NON_KEYWORDS=SESSION,USER
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  flyway:
+    schemas: session
+    default-schema: session
+    create-schemas: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+station-service:
+  base-url: http://station.test
