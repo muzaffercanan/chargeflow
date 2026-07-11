@@ -1,11 +1,22 @@
 spring:
   application:
     name: session-service
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
-      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+  datasource:
+    url: ${SESSION_DB_URL}
+    username: ${SESSION_DB_USERNAME}
+    password: ${SESSION_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    schemas: session
+    default-schema: session
+    create-schemas: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+station-service:
+  base-url: ${STATION_SERVICE_URL:http://localhost:8081}
 
 server:
   port: ${SESSION_SERVICE_PORT:8082}
@@ -13,6 +24,9 @@ server:
 management:
   endpoints:
     web:
+      base-path: /
+      path-mapping:
+        health: health
       exposure:
         include: health,info
   endpoint:

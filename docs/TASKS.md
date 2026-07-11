@@ -12,9 +12,9 @@ Status is intentionally conservative: an item is checked only when the correspon
 - [x] Add Maven Wrapper pinned to Apache Maven 3.9.11.
 - [x] Add environment-driven service ports and actuator health configuration.
 - [x] Verify both empty services start and report healthy through Actuator.
-- [ ] Add PostgreSQL connection configuration for both owned schemas.
-- [ ] Add Flyway migration locations and schema history configuration.
-- [ ] Add deterministic station, connector, tariff, user, and wallet seed migrations.
+- [x] Add PostgreSQL connection configuration for both owned schemas.
+- [x] Add Flyway migration locations and schema history configuration.
+- [x] Add deterministic station, connector, tariff, user, and wallet seed migrations.
 - [x] Add Station Service PostgreSQL configuration and Flyway migrations for the `station` schema.
 
 ## Station Service
@@ -27,17 +27,17 @@ Status is intentionally conservative: an item is checked only when the correspon
 
 ## Session Service
 
-- [ ] Model sessions and the wallet module in the `session` schema.
-- [ ] Implement the synchronous Station Service client.
-- [ ] Implement start validation, tariff snapshot, occupy call, and `ACTIVE` session creation.
-- [ ] Implement stop validation, cost calculation, wallet debit, completion, and release call.
-- [ ] Implement session and user-session reads.
-- [ ] Add consistent API errors, including fail-fast `503` dependency failures.
-- [ ] Add lifecycle and billing action logging.
+- [x] Model sessions and the wallet module in the `session` schema.
+- [x] Implement the synchronous Station Service client.
+- [x] Implement start validation, tariff snapshot, occupy call, and `ACTIVE` session creation.
+- [x] Implement stop validation, cost calculation, wallet debit, completion, and release call.
+- [x] Implement session and user-session reads.
+- [x] Add consistent API errors, including fail-fast `503` dependency failures.
+- [x] Add lifecycle and billing action logging.
 
 ## Tests
 
-- [ ] Add the worked `12.5 * 8.50 + 2.00 = 108.25` cost test.
+- [x] Add the worked `12.5 * 8.50 + 2.00 = 108.25` cost test.
 - [ ] Add a start-to-stop lifecycle test.
 - [x] Add an invalid-case test.
 - [ ] Add persistence/integration coverage for the real database-backed flow.
