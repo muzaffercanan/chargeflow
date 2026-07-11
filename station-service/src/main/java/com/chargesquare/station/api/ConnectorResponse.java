@@ -1,0 +1,12 @@
+package com.chargesquare.station.api;
+
+import com.chargesquare.station.domain.ConnectorStatus;
+
+public record ConnectorResponse(
+        Long connectorId,
+        Long stationId,
+        String type,
+        Integer powerKw,
+        ConnectorStatus status,
+        TariffResponse tariff) {
+}

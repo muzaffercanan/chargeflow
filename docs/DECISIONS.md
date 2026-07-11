@@ -26,7 +26,7 @@ The implementation will use these values consistently in migrations, README exam
 
 - Station `1`: `ChargeSquare Demo Station`.
 - Connector `10`: `CCS2-DC`, `60` kW, `AVAILABLE`, tariff `5`, `8.50` TRY/kWh, `2.00` TRY start fee.
-- Connector `11`: `Type2-AC`, `22` kW, `AVAILABLE`, tariff `6`, `7.25` TRY/kWh, `1.00` TRY start fee.
+- Connector `11`: `Type2-AC`, `22` kW, `AVAILABLE`, tariff `5`, `8.50` TRY/kWh, `2.00` TRY start fee.
 - User `7`: wallet balance `500.00` TRY.
 
 The worked case remains: `12.5` kWh on connector `10` costs `108.25` TRY, leaving `391.75` TRY.

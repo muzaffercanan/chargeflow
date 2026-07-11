@@ -1,11 +1,19 @@
 spring:
   application:
     name: station-service
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
-      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+  datasource:
+    url: ${STATION_DB_URL}
+    username: ${STATION_DB_USERNAME}
+    password: ${STATION_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    schemas: station
+    default-schema: station
+    create-schemas: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
 
 server:
   port: ${STATION_SERVICE_PORT:8081}
@@ -13,6 +21,9 @@ server:
 management:
   endpoints:
     web:
+      base-path: /
+      path-mapping:
+        health: health
       exposure:
         include: health,info
   endpoint:

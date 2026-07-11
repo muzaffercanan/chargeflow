@@ -21,7 +21,7 @@ If another instruction conflicts with the requirements or decisions, stop and re
 
 ## Coding conventions
 
-- Use Java 21, Spring Boot 3.5.16, and Maven.
+- Use Java 21, Spring Boot 3.5.16, and the repository Maven Wrapper (`mvnw` / `mvnw.cmd`) for build commands.
 - Prefer small functions with one clear responsibility and descriptive names.
 - Use constructor injection; do not use field injection.
 - Use `Instant` for persisted timestamps and API timestamps.

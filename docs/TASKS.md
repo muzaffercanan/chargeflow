@@ -9,19 +9,21 @@ Status is intentionally conservative: an item is checked only when the correspon
 - [x] Create the `session-service` module.
 - [x] Add empty Spring Boot application entry points.
 - [x] Add the foundation dependencies allowed by the case.
+- [x] Add Maven Wrapper pinned to Apache Maven 3.9.11.
 - [x] Add environment-driven service ports and actuator health configuration.
 - [x] Verify both empty services start and report healthy through Actuator.
 - [ ] Add PostgreSQL connection configuration for both owned schemas.
 - [ ] Add Flyway migration locations and schema history configuration.
 - [ ] Add deterministic station, connector, tariff, user, and wallet seed migrations.
+- [x] Add Station Service PostgreSQL configuration and Flyway migrations for the `station` schema.
 
 ## Station Service
 
-- [ ] Model stations, connectors, and tariffs in the `station` schema.
-- [ ] Implement connector and station connector-list reads.
-- [ ] Implement guarded internal occupy/release operations.
-- [ ] Add Station Service validation and error mapping.
-- [ ] Add Station Service action logging.
+- [x] Model stations, connectors, and tariffs in the `station` schema.
+- [x] Implement connector and station connector-list reads.
+- [x] Implement guarded internal occupy/release operations.
+- [x] Add Station Service validation and error mapping.
+- [x] Add Station Service action logging.
 
 ## Session Service
 
@@ -37,8 +39,9 @@ Status is intentionally conservative: an item is checked only when the correspon
 
 - [ ] Add the worked `12.5 * 8.50 + 2.00 = 108.25` cost test.
 - [ ] Add a start-to-stop lifecycle test.
-- [ ] Add an invalid-case test.
+- [x] Add an invalid-case test.
 - [ ] Add persistence/integration coverage for the real database-backed flow.
+- [x] Add Station Service endpoint and atomic-transition tests.
 
 ## Docker
 

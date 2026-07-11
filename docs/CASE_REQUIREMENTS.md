@@ -22,10 +22,10 @@ Reference: PDF Sections 3.2, 3.5, 3.8, 3.9, and 3.11.
 - [ ] Keep Station Service tables in the `station` schema and Session Service/wallet tables in the `session` schema.
 - [ ] Create both schemas and all tables from a clean checkout with Flyway migrations.
 - [ ] Ensure data survives a container restart; core state must not live only in memory.
-- [ ] Seed one station deterministically.
-- [ ] Seed two connectors for the station, each linked to a tariff.
-- [ ] Seed connector `10` as `AVAILABLE` with tariff `8.50` TRY/kWh plus `2.00` TRY start fee.
-- [ ] Seed connector `11` as `AVAILABLE` with a documented tariff and connector type/power rating.
+- [x] Seed one station deterministically.
+- [x] Seed two connectors for the station, each linked to a tariff.
+- [x] Seed connector `10` as `AVAILABLE` with tariff `8.50` TRY/kWh plus `2.00` TRY start fee.
+- [x] Seed connector `11` as `AVAILABLE` with a documented tariff and connector type/power rating.
 - [ ] Seed user `7` with a deterministic wallet balance of `500.00` TRY.
 - [ ] Keep seed values consistent across migrations, README examples, and tests.
 - [ ] Use `BigDecimal` for energy, tariff values, wallet balances, and cost.
@@ -36,20 +36,20 @@ Reference: PDF Sections 3.2, 3.5, 3.8, 3.9, and 3.11.
 
 Reference: PDF Sections 3.2.1, 3.3, 3.7.1, 3.7.2, 3.7.6, and 3.9.
 
-- [ ] Implement `GET /connectors/{id}`.
-  - [ ] Return `200 OK` with connector id, station id, type, power rating, status, and tariff (`tariffId`, `pricePerKwh`, `startFee`, `currency`).
-  - [ ] Return `404 Not Found` with the consistent JSON error body and `CONNECTOR_NOT_FOUND` for an unknown connector.
-- [ ] Implement `GET /stations/{id}/connectors`.
-  - [ ] Return `200 OK` with the station's connector array, current statuses, and tariffs.
-  - [ ] Define and document the not-found behavior for an unknown station using the same error shape.
-- [ ] Implement internal `POST /connectors/{id}/occupy`.
-  - [ ] Return `200 OK` and `OCCUPIED` when an available connector is occupied.
-  - [ ] Return `404 Not Found` with `CONNECTOR_NOT_FOUND` for an unknown connector.
-  - [ ] Return `409 Conflict` with `CONNECTOR_OCCUPIED` when it is already occupied.
-- [ ] Implement internal `POST /connectors/{id}/release`.
-  - [ ] Return `200 OK` and `AVAILABLE` when an occupied connector is released.
-  - [ ] Return a documented, consistent conflict/not-found error when release is invalid.
-- [ ] Keep connector state transitions guarded and persisted.
+- [x] Implement `GET /connectors/{id}`.
+  - [x] Return `200 OK` with connector id, station id, type, power rating, status, and tariff (`tariffId`, `pricePerKwh`, `startFee`, `currency`).
+  - [x] Return `404 Not Found` with the consistent JSON error body and `CONNECTOR_NOT_FOUND` for an unknown connector.
+- [x] Implement `GET /stations/{id}/connectors`.
+  - [x] Return `200 OK` with the station's connector array, current statuses, and tariffs.
+  - [x] Return `404 Not Found` with `STATION_NOT_FOUND` and the same error shape for an unknown station.
+- [x] Implement internal `POST /connectors/{id}/occupy`.
+  - [x] Return `200 OK` and `OCCUPIED` when an available connector is occupied.
+  - [x] Return `404 Not Found` with `CONNECTOR_NOT_FOUND` for an unknown connector.
+  - [x] Return `409 Conflict` with `CONNECTOR_OCCUPIED` when it is already occupied.
+- [x] Implement internal `POST /connectors/{id}/release`.
+  - [x] Return `200 OK` and `AVAILABLE` when an occupied connector is released.
+  - [x] Return `404 Not Found` with `CONNECTOR_NOT_FOUND` when the connector is unknown; release is idempotent for an existing available connector.
+- [x] Keep connector state transitions guarded and persisted.
 
 ## Session Service API and lifecycle
 
