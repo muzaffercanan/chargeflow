@@ -45,10 +45,10 @@ Status is intentionally conservative: an item is checked only when the correspon
 
 ## Docker
 
-- [ ] Add `station-service/Dockerfile`.
-- [ ] Add `session-service/Dockerfile`.
-- [ ] Add root `docker-compose.yml` with PostgreSQL and both services.
-- [ ] Verify the documented one-command Compose flow from a clean checkout.
+- [x] Add `station-service/Dockerfile`.
+- [x] Add `session-service/Dockerfile`.
+- [x] Add root `docker-compose.yml` with PostgreSQL and both services.
+- [x] Verify the documented one-command Compose flow from a clean checkout.
 
 ## Kubernetes/CI
 

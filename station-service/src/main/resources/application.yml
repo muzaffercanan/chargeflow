@@ -7,12 +7,17 @@ spring:
     password: ${STATION_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   flyway:
-    schemas: station
-    default-schema: station
+    schemas: ${STATION_DB_SCHEMA:station}
+    default-schema: ${STATION_DB_SCHEMA:station}
     create-schemas: true
+    placeholders:
+      station_schema: ${STATION_DB_SCHEMA:station}
   jpa:
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: ${STATION_DB_SCHEMA:station}
     open-in-view: false
 
 server:

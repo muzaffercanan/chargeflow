@@ -5,7 +5,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users", schema = "session")
+@Table(name = "users")
 public class User {
 
     @Id
@@ -18,4 +18,3 @@ public class User {
         return id;
     }
 }
-

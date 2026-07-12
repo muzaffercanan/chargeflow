@@ -12,7 +12,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "wallets", schema = "session")
+@Table(name = "wallets")
 public class Wallet {
 
     @Id
@@ -46,4 +46,3 @@ public class Wallet {
         return currency;
     }
 }
-

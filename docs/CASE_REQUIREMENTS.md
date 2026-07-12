@@ -118,11 +118,11 @@ Reference: PDF Sections 3.9, 3.10, 6, and 9.2.
 
 Reference: PDF Sections 3.6, 3.6.1, 3.9, and 3.12.
 
-- [ ] Add `station-service/Dockerfile`.
-- [ ] Add `session-service/Dockerfile`.
-- [ ] Add root `docker-compose.yml` that starts PostgreSQL, Station Service, and Session Service.
-- [ ] Wire database settings and service URLs through Compose environment variables.
-- [ ] Verify `docker compose up` from a clean checkout brings up the complete flow.
+- [x] Add `station-service/Dockerfile`.
+- [x] Add `session-service/Dockerfile`.
+- [x] Add root `docker-compose.yml` that starts PostgreSQL, Station Service, and Session Service.
+- [x] Wire database settings and service URLs through Compose environment variables.
+- [x] Verify `docker compose up` from a clean checkout brings up the complete flow.
 
 ## Kubernetes
 

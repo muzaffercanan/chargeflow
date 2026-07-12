@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: ["postgres", "-p", "${POSTGRES_INTERNAL_PORT}"]
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_INTERNAL_PORT}"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB -p ${POSTGRES_INTERNAL_PORT}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  station-service:
+    build:
+      context: .
+      dockerfile: station-service/Dockerfile
+    environment:
+      STATION_DB_URL: jdbc:postgresql://postgres:${POSTGRES_INTERNAL_PORT}/${POSTGRES_DB}
+      STATION_DB_USERNAME: ${POSTGRES_USER}
+      STATION_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      STATION_DB_SCHEMA: ${STATION_DB_SCHEMA}
+      STATION_SERVICE_PORT: ${STATION_SERVICE_PORT}
+    ports:
+      - "${STATION_SERVICE_PORT}:${STATION_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:$$STATION_SERVICE_PORT/health >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  session-service:
+    build:
+      context: .
+      dockerfile: session-service/Dockerfile
+    environment:
+      SESSION_DB_URL: jdbc:postgresql://postgres:${POSTGRES_INTERNAL_PORT}/${POSTGRES_DB}
+      SESSION_DB_USERNAME: ${POSTGRES_USER}
+      SESSION_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SESSION_DB_SCHEMA: ${SESSION_DB_SCHEMA}
+      SESSION_SERVICE_PORT: ${SESSION_SERVICE_PORT}
+      STATION_SERVICE_URL: ${STATION_SERVICE_URL}
+    ports:
+      - "${SESSION_SERVICE_PORT}:${SESSION_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      station-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:$$SESSION_SERVICE_PORT/health >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  postgres-data:

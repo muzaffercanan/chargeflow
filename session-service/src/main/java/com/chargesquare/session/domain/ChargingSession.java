@@ -17,7 +17,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "charging_sessions", schema = "session")
+@Table(name = "charging_sessions")
 public class ChargingSession {
 
     @Id
@@ -78,4 +78,3 @@ public class ChargingSession {
     public BigDecimal getCost() { return cost; }
     public TariffSnapshot getTariffSnapshot() { return tariffSnapshot; }
 }
-
