@@ -128,40 +128,40 @@ Reference: PDF Sections 3.6, 3.6.1, 3.9, and 3.12.
 
 Reference: PDF Sections 3.6, 3.6.1, 3.9, and 3.12.
 
-- [ ] Add `k8s/station-deployment.yaml` and `k8s/station-service.yaml`.
-- [ ] Add `k8s/session-deployment.yaml` and `k8s/session-service.yaml`.
-- [ ] Add `k8s/configmap.yaml` with real configuration consumed by at least one Deployment.
+- [x] Add `k8s/station-deployment.yaml` and `k8s/station-service.yaml`.
+- [x] Add `k8s/session-deployment.yaml` and `k8s/session-service.yaml`.
+- [x] Add `k8s/configmap.yaml` with real configuration consumed by at least one Deployment.
 - [ ] Keep manifests plain YAML and validate with `kubectl apply --dry-run=client` where a cluster is unavailable.
 
 ## CI
 
 Reference: PDF Sections 3.6, 3.6.1, 3.9, and 3.12.
 
-- [ ] Add `.github/workflows/ci.yml` triggered on push.
-- [ ] Build the Maven project.
-- [ ] Run the automated tests.
-- [ ] Build the Station Service and Session Service Docker images.
-- [ ] Do not push images or deploy from this workflow.
+- [x] Add `.github/workflows/ci.yml` triggered on push.
+- [x] Build the Maven project.
+- [x] Run the automated tests.
+- [x] Build the Station Service and Session Service Docker images.
+- [x] Do not push images or deploy from this workflow.
 
 ## README and design documentation
 
 Reference: PDF Sections 3.10, 3.11, 3.12, 5, 6, 8.2, and 9.2.
 
-- [ ] Add a top-level `README.md` with the one-command run path.
-- [ ] Add two or three sample requests showing the end-to-end start and stop flow.
-- [ ] Document the main endpoints.
-- [ ] Document the Java/Spring/PostgreSQL stack and why it was chosen.
-- [ ] Document how to run tests.
-- [ ] Document assumptions, including simulated meter energy and the negative-wallet policy.
-- [ ] Include an honest time-spent and “what I would do next” note.
-- [ ] Add `DESIGN.md`, or an equivalent design section in the README, covering key decisions and unfinished work.
-- [ ] Explain decimal-safe money and final rounding.
-- [ ] Explain the wallet placement trade-off.
-- [ ] Explain tariff snapshotting and synchronous service communication.
-- [ ] Explain fail-fast dependency-down behavior.
-- [ ] Write a paragraph on idempotent retries and why the state guard prevents double-charge in the current scope.
-- [ ] Write a few sentences on stuck connectors/partial failure and possible recovery trade-offs.
-- [ ] State that retries/backoff, brokers, sagas, exactly-once delivery, scaling/HPA, ingress, service mesh, caching, rate limiting, and refresh tokens are not implemented.
+- [x] Add a top-level `README.md` with the one-command run path.
+- [x] Add two or three sample requests showing the end-to-end start and stop flow.
+- [x] Document the main endpoints.
+- [x] Document the Java/Spring/PostgreSQL stack and why it was chosen.
+- [x] Document how to run tests.
+- [x] Document assumptions, including simulated meter energy and the negative-wallet policy.
+- [x] Include an honest time-spent and “what I would do next” note.
+- [x] Add `DESIGN.md`, or an equivalent design section in the README, covering key decisions and unfinished work.
+- [x] Explain decimal-safe money and final rounding.
+- [x] Explain the wallet placement trade-off.
+- [x] Explain tariff snapshotting and synchronous service communication.
+- [x] Explain fail-fast dependency-down behavior.
+- [x] Write a paragraph on idempotent retries and why the state guard prevents double-charge in the current scope.
+- [x] Write a few sentences on stuck connectors/partial failure and possible recovery trade-offs.
+- [x] State that retries/backoff, brokers, sagas, exactly-once delivery, scaling/HPA, ingress, service mesh, caching, rate limiting, and refresh tokens are not implemented.
 
 ## Explicitly out of scope
 

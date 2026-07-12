@@ -8,9 +8,14 @@ spring:
     schemas: session
     default-schema: session
     create-schemas: true
+    placeholders:
+      session_schema: session
   jpa:
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: session
     open-in-view: false
 
 station-service:

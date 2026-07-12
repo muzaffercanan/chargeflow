@@ -52,11 +52,11 @@ Status is intentionally conservative: an item is checked only when the correspon
 
 ## Kubernetes/CI
 
-- [ ] Add Station Service Deployment and Service manifests.
-- [ ] Add Session Service Deployment and Service manifests.
-- [ ] Add a ConfigMap consumed by a Deployment.
-- [ ] Validate manifests with `kubectl apply --dry-run=client` or document the unavailable tool.
-- [ ] Add push-triggered CI to build, test, and build both images.
+- [x] Add Station Service Deployment and Service manifests.
+- [x] Add Session Service Deployment and Service manifests.
+- [x] Add a ConfigMap consumed by a Deployment.
+- [x] Attempt `kubectl apply --dry-run=client` and document the unavailable Kubernetes API server.
+- [x] Add push-triggered CI to build, test, and build both images.
 
 ## Documentation
 
@@ -65,8 +65,8 @@ Status is intentionally conservative: an item is checked only when the correspon
 - [x] Create this implementation task list.
 - [x] Add repository guidance in `AGENTS.md`.
 - [x] Add short `CLAUDE.md` and `GEMINI.md` agent entry points.
-- [ ] Add the top-level README with run instructions, examples, assumptions, tests, and next steps.
-- [ ] Add the short design note covering the two required reasoning paragraphs.
+- [x] Add the top-level README with run instructions, examples, assumptions, tests, and next steps.
+- [x] Add the short design note covering the two required reasoning paragraphs.
 
 ## Final Audit
 

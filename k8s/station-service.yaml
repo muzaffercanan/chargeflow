@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: station-service
+  labels:
+    app.kubernetes.io/name: station-service
+    app.kubernetes.io/part-of: chargesquare
+spec:
+  selector:
+    app.kubernetes.io/name: station-service
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
