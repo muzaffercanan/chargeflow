@@ -27,7 +27,7 @@ class RestStationClientTest {
     void setUp() {
         RestClient.Builder builder = RestClient.builder();
         server = MockRestServiceServer.bindTo(builder).build();
-        client = new RestStationClient(builder, "http://station.test");
+        client = new RestStationClient(builder.baseUrl("http://station.test").build());
     }
 
     @Test
@@ -86,4 +86,3 @@ class RestStationClientTest {
                 .hasMessage("Station Service is unavailable");
     }
 }
-

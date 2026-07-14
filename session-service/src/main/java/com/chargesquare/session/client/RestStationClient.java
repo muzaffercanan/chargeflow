@@ -1,10 +1,14 @@
 package com.chargesquare.session.client;
 
+import java.time.Duration;
+
 import com.chargesquare.session.exception.ConnectorNotFoundException;
 import com.chargesquare.session.exception.ConnectorOccupiedException;
 import com.chargesquare.session.exception.StationServiceUnavailableException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -16,8 +20,20 @@ public class RestStationClient implements StationClient {
 
     private final RestClient restClient;
 
-    public RestStationClient(RestClient.Builder builder, @Value("${station-service.base-url}") String baseUrl) {
-        this.restClient = builder.baseUrl(baseUrl).build();
+    @Autowired
+    public RestStationClient(
+            RestClient.Builder builder,
+            @Value("${station-service.base-url}") String baseUrl,
+            @Value("${station-service.connect-timeout}") Duration connectTimeout,
+            @Value("${station-service.read-timeout}") Duration readTimeout) {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(connectTimeout);
+        requestFactory.setReadTimeout(readTimeout);
+        this.restClient = builder.requestFactory(requestFactory).baseUrl(baseUrl).build();
+    }
+
+    RestStationClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     @Override

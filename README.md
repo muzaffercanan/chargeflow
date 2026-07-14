@@ -104,6 +104,8 @@ All operational configuration is environment-backed. The `.env.example` file has
 | `STATION_DB_SCHEMA`, `SESSION_DB_SCHEMA` | Schema ownership | `station`, `session` |
 | `STATION_SERVICE_PORT`, `SESSION_SERVICE_PORT` | HTTP ports | `8081`, `8082` |
 | `STATION_SERVICE_URL` | Session-to-Station REST base URL | `http://station-service:8081` |
+| `STATION_CONNECT_TIMEOUT` | Session-to-Station connection timeout | `2s` |
+| `STATION_READ_TIMEOUT` | Session-to-Station response/read timeout | `3s` |
 
 Kubernetes manifests are in [`k8s`](k8s). They expect a reachable PostgreSQL database at the host in the ConfigMap; this repository intentionally does not include a database Deployment. Before applying them, create a secret named `chargesquare-postgres` with `username` and `password` keys, then replace the non-secret database host/name in `k8s/configmap.yaml` if needed. No database credential values are committed.
 
@@ -114,22 +116,22 @@ kubectl create secret generic chargesquare-postgres \
 kubectl apply --dry-run=client -f k8s/
 ```
 
-The manifests use `ConfigMap` values for service URLs, ports, schemas, and JDBC URLs, explicit `secretKeyRef` values for database credentials, and `/health/readiness` plus `/health/liveness` probes. The required dry-run command was attempted with kubectl `1.30.5`, but this workspace has no configured Kubernetes API server; that kubectl version performs OpenAPI discovery and exited while trying `localhost:8080`. Consequently, no successful Kubernetes validation or cluster deployment is claimed. Run the same command from a configured cluster context to complete validation.
+The manifests use `ConfigMap` values for service URLs, ports, schemas, and JDBC URLs, explicit `secretKeyRef` values for database credentials, and `/health/readiness` plus `/health/liveness` probes. The required dry-run command was attempted with kubectl `1.30.5`, but this workspace has no configured Kubernetes API server; that kubectl version performs OpenAPI discovery and exited while trying `localhost:8080`. As an offline fallback, kubeconform `0.6.7` validated all five resources in strict mode. No cluster deployment is claimed; run the same kubectl command from a configured cluster context to complete API-server validation.
 
 ## Architecture and choices
 
 Java 21 and Spring Boot 3.5.16 provide the requested current LTS/runtime stack with web, validation, JPA, Flyway, Actuator, and test support. PostgreSQL provides durable state, while Flyway produces the two owned schemas and deterministic seeds from a clean database. `BigDecimal` is used for energy, tariffs, costs, and wallet balances; final cost uses `HALF_UP` rounding to two decimal places. The tariff is snapshotted when a session starts, so later tariff changes do not alter a completed bill.
 
-For the detailed lifecycle and failure trade-offs, see [`docs/DESIGN.md`](docs/DESIGN.md).
+For the detailed lifecycle and failure trade-offs, see [`DESIGN.md`](DESIGN.md).
 
 ## Assumptions and known gaps
 
 - Meter energy is supplied by the stop request; no real meter integration exists.
 - Wallet balances may become negative so delivered energy is always settled.
-- If Station Service is unavailable, Session Service fails fast with a consistent `503` error; it does not retry or fall back.
+- If Station Service cannot be connected to or does not respond within the configured timeout, Session Service returns `503 STATION_SERVICE_UNAVAILABLE`; start persists no session, and a timed-out release rolls back the local stop and wallet debit. It does not retry or fall back.
 - No authentication, authorization, Stage 2 administration, top-ups, reservations, time-of-use tariffs, real idempotency keys, stuck-connector cleanup, domain events, OpenAPI, or advanced observability is implemented.
 - No retries/backoff, broker, saga, exactly-once delivery, cache, rate limiting, service mesh, ingress, HPA, refresh tokens, or Kubernetes database Deployment is implemented.
 
 **Optional features attempted:** none.
 
-**Actual time spent (to be completed by the human author):** `________________`.
+**Time spent:** Approximately `[ACTUAL_FOCUSED_HOURS]` focused hours.

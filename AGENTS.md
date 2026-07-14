@@ -15,7 +15,6 @@ If another instruction conflicts with the requirements or decisions, stop and re
 - This repository contains only Station Service and Session Service.
 - Wallet remains a module inside Session Service.
 - Do not add Stage 2, authentication, authorization, or stretch goals.
-- Do not add business endpoints, domain entities, controllers, or business logic during the foundation phase.
 - Do not add a third service, broker, saga, cache, service mesh, retry framework, or cross-service table access.
 - Each service may access only its own PostgreSQL schema; cross-service data is accessed through the owning service's REST API.
 

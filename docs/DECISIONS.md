@@ -18,7 +18,7 @@ These decisions are locked for the Stage 1 implementation. `CASE_REQUIREMENTS.md
 | Numeric representation | `BigDecimal` for energy, tariffs, balances, and cost | Decimal arithmetic avoids binary floating-point drift in the billing path. |
 | Cost rounding | Final cost rounded to two decimals with `HALF_UP` | This matches the case requirement and makes the billing rule explicit and deterministic. |
 | Insufficient balance | Allow the wallet balance to become negative on stop | The stop operation remains truthful about energy delivered; the case explicitly permits this policy when documented. |
-| Dependency failure | Fail fast with a consistent `503 Service Unavailable` JSON error | Callers receive a clear transient dependency error without hidden retries or inconsistent partial behavior. |
+| Dependency failure | Bound connection/response waits and fail with a consistent `503 Service Unavailable` JSON error | Callers receive a clear transient dependency error without hidden retries; a release timeout rolls back the local stop transaction. |
 
 ## Deterministic baseline data
 
@@ -37,4 +37,3 @@ The worked case remains: `12.5` kWh on connector `10` costs `108.25` TRY, leavin
 - No stretch goals: top-up, reservations, time-of-use pricing, real idempotency keys, stuck-connector cleanup, domain events, a separate Wallet Service, OpenAPI, or advanced observability.
 - No caching, rate limiting, service mesh, retries, backoff, fallback, broker, saga, exactly-once delivery, HPA, ingress, or refresh-token machinery.
 - No cross-service table access; each service uses only its own schema and the Station Service API for station data.
-- No business endpoints, domain entities, controllers, or business logic in the current foundation phase.

@@ -42,6 +42,8 @@ Status is intentionally conservative: an item is checked only when the correspon
 - [x] Add an invalid-case test.
 - [x] Add persistence/integration coverage for the real database-backed flow.
 - [x] Add Station Service endpoint and atomic-transition tests.
+- [x] Add real HTTP response-timeout tests for start and stop rollback behavior.
+- [x] Reject energy values that exceed the persisted six-digit fractional precision.
 
 ## Docker
 
@@ -67,14 +69,15 @@ Status is intentionally conservative: an item is checked only when the correspon
 - [x] Add short `CLAUDE.md` and `GEMINI.md` agent entry points.
 - [x] Add the top-level README with run instructions, examples, assumptions, tests, and next steps.
 - [x] Add the short design note covering the two required reasoning paragraphs.
+- [x] Place the final design note at root `DESIGN.md` and document bounded dependency timeouts.
 
 ## Final Audit
 
-- [ ] Confirm every checked requirement in `CASE_REQUIREMENTS.md` is implemented and tested.
-- [ ] Confirm no Stage 2 or stretch-goal artifacts were added.
-- [ ] Confirm no secrets or live `.env` files are committed.
-- [ ] Confirm no cross-service table access exists.
+- [x] Confirm every checked requirement in `CASE_REQUIREMENTS.md` is implemented and tested.
+- [x] Confirm no Stage 2 or stretch-goal artifacts were added.
+- [x] Confirm no secrets or live `.env` files are committed.
+- [x] Confirm no cross-service table access exists.
 - [x] Run the root Maven test command.
-- [ ] Run the documented Compose flow.
-- [ ] Validate Kubernetes manifests.
-- [ ] Review README examples against the actual API responses.
+- [x] Run the documented Compose flow.
+- [x] Attempt kubectl client dry-run and validate all five Kubernetes resources offline with kubeconform.
+- [x] Review README examples against the actual API responses.

@@ -48,6 +48,15 @@ class SessionControllerTest {
     }
 
     @Test
+    void rejectsEnergyWithMoreThanSixFractionalDigits() throws Exception {
+        mockMvc.perform(post("/sessions/1/stop")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"energyKwh\":1.1234567}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"));
+    }
+
+    @Test
     void mapsRepeatedStopToConflict() throws Exception {
         given(chargingSessionService.stop(any(), any())).willThrow(new SessionNotActiveException(1L));
 
