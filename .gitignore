@@ -19,3 +19,6 @@ Thumbs.db
 # Local temporary files
 tmp/
 *.log
+
+# Confidential case-study source document
+*.pdf
