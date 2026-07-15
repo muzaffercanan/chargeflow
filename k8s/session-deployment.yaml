@@ -37,6 +37,11 @@ spec:
                 secretKeyRef:
                   name: chargesquare-postgres
                   key: password
+            - name: JWT_SIGNING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: chargesquare-jwt
+                  key: signing-secret
           readinessProbe:
             httpGet:
               path: /health/readiness

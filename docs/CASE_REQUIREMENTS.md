@@ -1,6 +1,6 @@
-# ChargeSquare Stage 1 Case Requirements
+# ChargeSquare Stage 1 Baseline and Stage 2 Requirements
 
-This checklist converts the mandatory Stage 1 requirements and acceptance criteria in the case study into reviewable work items. Stage 2 and stretch goals are explicitly excluded. References point to the case-study PDF sections that define each group.
+This checklist keeps the completed mandatory Stage 1 acceptance criteria as the regression baseline and records the subsequently authorized Stage 2 bonus scope. Stretch goals remain excluded. References point to the case-study PDF sections that define each group.
 
 ## Scope and service boundaries
 
@@ -12,7 +12,7 @@ Reference: PDF Sections 3, 3.3, 3.4, and 3.10.
 - [x] Make Station Service the source of truth for stations, connectors, statuses, and tariffs.
 - [x] Make Session Service the owner of sessions and the start/stop lifecycle.
 - [x] Keep the required Session Service -> Station Service call as a real synchronous network REST call.
-- [x] Do not add a Wallet Service, event broker, saga, service mesh, caching layer, rate limiting, authentication, or other Stage 2/stretch machinery.
+- [x] Complete the Stage 1 baseline without a Wallet Service, event broker, saga, service mesh, caching layer, rate limiting, or premature Stage 2 machinery.
 
 ## Data, persistence, and deterministic seed
 
@@ -153,7 +153,7 @@ Reference: PDF Sections 3.10, 3.11, 3.12, 5, 6, 8.2, and 9.2.
 - [x] Document the Java/Spring/PostgreSQL stack and why it was chosen.
 - [x] Document how to run tests.
 - [x] Document assumptions, including simulated meter energy and the negative-wallet policy.
-- [ ] Replace `[ACTUAL_FOCUSED_HOURS]` with the human author's honest time spent; keep the documented limitations/not-attempted notes.
+- [ ] Record the human author's honest focused-hour total; it was not supplied during the final automated audit.
 - [x] Add `DESIGN.md`, or an equivalent design section in the README, covering key decisions and unfinished work.
 - [x] Explain decimal-safe money and final rounding.
 - [x] Explain the wallet placement trade-off.
@@ -163,9 +163,64 @@ Reference: PDF Sections 3.10, 3.11, 3.12, 5, 6, 8.2, and 9.2.
 - [x] Write a few sentences on stuck connectors/partial failure and possible recovery trade-offs.
 - [x] State that retries/backoff, brokers, sagas, exactly-once delivery, scaling/HPA, ingress, service mesh, caching, rate limiting, and refresh tokens are not implemented.
 
-## Explicitly out of scope
+## Stage 1 scope boundary
 
 Reference: PDF Sections 3.10, 4, and 7.
 
-- [x] Do not implement Stage 2 admin UI, authentication, JWT, RBAC, security hardening, or `SECURITY.md` requirements.
-- [x] Do not implement stretch goals such as wallet top-up, reservations, time-of-use tariffs, real idempotency keys, stuck-connector cleanup, domain events, a third Wallet Service, or OpenAPI/advanced observability.
+- [x] Complete and verify Stage 1 before adding the separately authorized Stage 2 slice below.
+- [x] Complete the Stage 1 baseline without wallet top-up, reservations, time-of-use tariffs, real idempotency keys, stuck-connector cleanup, domain events, a third Wallet Service, OpenAPI, or advanced observability before separately authorized later work.
+
+## Stage 2 authentication and authorization
+
+Reference: PDF Sections 4.1, 4.3, 4.3.1, 4.4, and 4.5.
+
+- [x] Keep authentication as a small persisted module inside Session Service; add no third backend service.
+- [x] Seed exactly one VIEWER and one ADMIN with BCrypt password hashes only.
+- [x] Implement `POST /auth/login` with a generic 401 response for invalid or disabled users.
+- [x] Issue short-lived HS256 JWTs with subject, role, issued-at, expiry, issuer, and audience.
+- [x] Read signing secret, TTLs, issuer, audience, and allowed CORS origin from environment-backed configuration.
+- [x] Keep health/probe and login endpoints public; require a valid JWT for domain APIs.
+- [x] Require VIEWER or ADMIN for Station and Session reads.
+- [x] Require ADMIN for human start/stop writes.
+- [x] Require SERVICE or ADMIN for Station occupy/release operations.
+- [x] Return consistent JSON `AUTHENTICATION_REQUIRED` and `ACCESS_DENIED` responses.
+- [x] Generate independent short-lived SERVICE tokens in Session Service; never expose them to the browser.
+- [x] Preserve bounded Station timeouts and the documented 503 mapping.
+- [x] Allow only the configured CORS origin, required methods/headers, and no browser credentials.
+- [x] Log successful/failed login and actor-aware start/stop actions without secrets or tokens.
+- [x] Reference the Kubernetes signing secret via `secretKeyRef` without committing a Secret value.
+- [x] Test login, invalid/expired tokens, anonymous access, both human roles, internal SERVICE access, and Stage 1 regression behavior.
+
+## Stage 2 operations panel
+
+Reference: PDF Sections 4.1, 4.2, 4.3.1, 4.4, and 4.5.
+
+- [x] Add a React/TypeScript/Vite panel with login, connectors, sessions, and receipt/detail screens.
+- [x] Store token, username, role, and expiry in `sessionStorage`; never store passwords.
+- [x] Attach bearer tokens centrally, redirect anonymous users, and clear auth on 401 or expiry.
+- [x] Treat role checks as UX only and retain backend authorization as authoritative.
+- [x] Show connector status, power, type, price, start fee, and currency with loading/empty/error states.
+- [x] Show seeded-user sessions and navigate each row to its receipt.
+- [x] Show ADMIN the active-session stop form and VIEWER an explicit read-only state.
+- [x] Validate required, non-negative energy with no more than six fractional digits client-side and server-side.
+- [x] Handle 400, 401, 403, 404, 409, and 503 responses with understandable messages.
+- [x] Use central relative API paths and Vite/Nginx reverse proxies.
+- [x] Add a multi-stage panel image, SPA fallback, Compose service, and healthcheck.
+- [x] Test login, redirect, VIEWER/ADMIN UX, 401/403, stop refresh, and loading/error states.
+- [x] Document `sessionStorage` XSS risk and the production cookie/BFF versus CSRF trade-off.
+
+## Stage 2 exclusions
+
+- [x] Do not add refresh tokens, signup, password reset, OAuth login, token revocation, account lockout, a separate identity provider, API gateway, or database-backed browser sessions.
+- [x] Do not add wallet top-up, reservations, richer tariffs, a Wallet Service, broker/event machinery, retry framework, or another Stage 1 stretch goal.
+
+## Final authorized reviewability improvements
+
+- [x] Add a substantive root `SECURITY.md` that matches the implemented auth, token storage, CORS, secrets, audit logging, and limitations.
+- [x] Add Springdoc OpenAPI/Swagger to both existing services with Bearer security, role requirements, schemas, status codes, error contracts, and worked billing examples.
+- [x] Keep local/demo documentation endpoints public without weakening domain endpoint authorization.
+- [x] Add `scripts/e2e-smoke.sh` for the real authenticated Compose path using `curl` and `jq` without hardcoded generated session ids.
+- [x] Add a separate CI E2E job with health waiting, failure logs, and unconditional project-scoped teardown; keep the original job intact.
+- [x] Use focused `key=value` logs for required authentication, lifecycle, wallet, connector, authorization, and timeout events without sensitive values.
+- [x] Reconcile README, DESIGN, decisions, and internal checklists without adding domain features.
+- [x] Complete and record the final verification matrix after all changes.

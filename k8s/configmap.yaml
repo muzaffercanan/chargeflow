@@ -14,3 +14,8 @@ data:
   STATION_SERVICE_URL: http://station-service:8081
   STATION_CONNECT_TIMEOUT: 2s
   STATION_READ_TIMEOUT: 3s
+  JWT_ACCESS_TTL: 15m
+  JWT_SERVICE_TTL: 60s
+  JWT_ISSUER: chargesquare-session-service
+  JWT_AUDIENCE: chargesquare-api
+  PANEL_ALLOWED_ORIGIN: http://localhost:5173

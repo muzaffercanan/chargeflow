@@ -3,5 +3,7 @@
 .env.*
 !.env.example
 **/target
+panel/node_modules
+panel/dist
 *.log
 *.md

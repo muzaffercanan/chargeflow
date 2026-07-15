@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 import com.chargesquare.session.domain.ChargingSession;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Completed-session receipt including the post-debit wallet balance.")
 public record StopSessionResponse(
         Long sessionId,
         Long userId,
@@ -31,4 +33,3 @@ public record StopSessionResponse(
                 walletBalanceAfter);
     }
 }
-

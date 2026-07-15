@@ -22,12 +22,14 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,6 +69,7 @@ class SessionLifecycleIntegrationTest {
     @Test
     void persistsTheFullStartToStopLifecycleUsingTheTariffCapturedAtStart() throws Exception {
         MvcResult startResult = mockMvc.perform(post("/sessions")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"userId\":7,\"connectorId\":10}"))
                 .andExpect(status().isCreated())
@@ -80,6 +83,7 @@ class SessionLifecycleIntegrationTest {
         stationClient.changeTariff(new BigDecimal("99.99"), new BigDecimal("50.00"));
 
         mockMvc.perform(post("/sessions/{id}/stop", sessionId)
+                .with(admin())
                 .contentType(APPLICATION_JSON)
                 .content("{\"energyKwh\":12.5}"))
                 .andExpect(status().isOk())
@@ -96,6 +100,7 @@ class SessionLifecycleIntegrationTest {
         assertThat(stationClient.status()).isEqualTo("AVAILABLE");
 
         mockMvc.perform(post("/sessions/{id}/stop", sessionId)
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"energyKwh\":12.5}"))
                 .andExpect(status().isConflict())
@@ -111,6 +116,7 @@ class SessionLifecycleIntegrationTest {
         stationClient.makeUnknown();
 
         mockMvc.perform(post("/sessions")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"userId\":7,\"connectorId\":99}"))
                 .andExpect(status().isNotFound())
@@ -121,6 +127,7 @@ class SessionLifecycleIntegrationTest {
         stationClient.makeOccupied();
 
         mockMvc.perform(post("/sessions")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"userId\":7,\"connectorId\":10}"))
                 .andExpect(status().isConflict())
@@ -131,18 +138,21 @@ class SessionLifecycleIntegrationTest {
     @Test
     void returnsValidationErrorsBeforeCreatingOrStoppingSessions() throws Exception {
         mockMvc.perform(post("/sessions")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"connectorId\":10}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"));
 
         mockMvc.perform(post("/sessions")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"userId\":7}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("VALIDATION_ERROR"));
 
         mockMvc.perform(post("/sessions/1/stop")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"energyKwh\":-0.01}"))
                 .andExpect(status().isBadRequest())
@@ -156,6 +166,7 @@ class SessionLifecycleIntegrationTest {
         stationClient.makeUnavailable();
 
         mockMvc.perform(post("/sessions")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"userId\":7,\"connectorId\":10}"))
                 .andExpect(status().isServiceUnavailable())
@@ -167,6 +178,14 @@ class SessionLifecycleIntegrationTest {
 
     private JsonNode response(MvcResult result) throws Exception {
         return objectMapper.readTree(result.getResponse().getContentAsString());
+    }
+
+    private static org.springframework.test.web.servlet.request.RequestPostProcessor admin() {
+        return jwt().jwt(token -> token
+                        .tokenValue("admin-token")
+                        .subject("admin")
+                        .claim("role", "ADMIN"))
+                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
 
     @TestConfiguration(proxyBeanMethods = false)
@@ -218,9 +237,12 @@ class SessionLifecycleIntegrationTest {
         }
 
         @Override
-        public StationConnector getConnector(Long connectorId) {
+        public StationConnector getConnector(Long connectorId, String humanAccessToken) {
             verifyAvailable();
             verifyKnownConnector(connectorId);
+            if (!"admin-token".equals(humanAccessToken)) {
+                throw new IllegalArgumentException("Expected delegated admin token");
+            }
             return new StationConnector(connectorId, status, tariff);
         }
 
