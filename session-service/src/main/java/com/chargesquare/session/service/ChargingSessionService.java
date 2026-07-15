@@ -23,6 +23,7 @@ import com.chargesquare.session.exception.UserNotFoundException;
 import com.chargesquare.session.repository.ChargingSessionRepository;
 import com.chargesquare.session.repository.UserRepository;
 import com.chargesquare.session.repository.WalletRepository;
+import com.chargesquare.session.security.RequestActor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,10 +68,10 @@ public class ChargingSessionService {
     }
 
     @Transactional
-    public SessionResponse start(StartSessionRequest request) {
+    public SessionResponse start(StartSessionRequest request, RequestActor actor) {
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new UserNotFoundException(request.userId()));
-        StationConnector connector = stationClient.getConnector(request.connectorId());
+        StationConnector connector = stationClient.getConnector(request.connectorId(), actor.accessToken());
         if (!"AVAILABLE".equals(connector.status())) {
             throw new ConnectorOccupiedException(request.connectorId());
         }
@@ -82,12 +83,14 @@ public class ChargingSessionService {
                 connector.tariff().currency());
         ChargingSession session = sessionRepository.save(new ChargingSession(
                 user, request.connectorId(), Instant.now(clock), tariff));
-        LOGGER.info("Session {} started for user {} on connector {}", session.getId(), request.userId(), request.connectorId());
+        LOGGER.info(
+                "event=session_started actor={} role={} session_id={} user_id={} connector_id={}",
+                actor.subject(), actor.role(), session.getId(), request.userId(), request.connectorId());
         return SessionResponse.from(session);
     }
 
     @Transactional
-    public StopSessionResponse stop(Long sessionId, StopSessionRequest request) {
+    public StopSessionResponse stop(Long sessionId, StopSessionRequest request, RequestActor actor) {
         ChargingSession session = sessionRepository.findByIdForUpdate(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException(sessionId));
         if (session.getStatus() != SessionStatus.ACTIVE) {
@@ -101,10 +104,14 @@ public class ChargingSessionService {
         session.complete(request.energyKwh(), cost, Instant.now(clock));
 
         stationClient.release(session.getConnectorId());
-        LOGGER.info("Connector {} released for session {}", session.getConnectorId(), sessionId);
-        LOGGER.info("Cost {} {} charged for session {}", cost, session.getTariffSnapshot().getCurrency(), sessionId);
-        LOGGER.info("Wallet for user {} debited by {}; balance is {}", session.getUserId(), cost, walletBalanceAfter);
-        LOGGER.info("Session {} stopped", sessionId);
+        LOGGER.info("event=connector_released connector_id={} session_id={}", session.getConnectorId(), sessionId);
+        LOGGER.info("event=cost_charged session_id={} amount={} currency={}",
+                sessionId, cost, session.getTariffSnapshot().getCurrency());
+        LOGGER.info("event=wallet_debited user_id={} amount={} balance_after={}",
+                session.getUserId(), cost, walletBalanceAfter);
+        LOGGER.info(
+                "event=session_stopped actor={} role={} session_id={} user_id={} connector_id={}",
+                actor.subject(), actor.role(), sessionId, session.getUserId(), session.getConnectorId());
         return StopSessionResponse.from(session, walletBalanceAfter);
     }
 

@@ -20,6 +20,15 @@ spring:
         default_schema: ${STATION_DB_SCHEMA:station}
     open-in-view: false
 
+security:
+  jwt:
+    signing-secret: ${JWT_SIGNING_SECRET}
+    issuer: ${JWT_ISSUER:chargesquare-session-service}
+    audience: ${JWT_AUDIENCE:chargesquare-api}
+
+panel:
+  allowed-origin: ${PANEL_ALLOWED_ORIGIN:http://localhost:5173}
+
 server:
   port: ${STATION_SERVICE_PORT:8081}
 

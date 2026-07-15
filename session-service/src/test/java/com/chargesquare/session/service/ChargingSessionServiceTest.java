@@ -22,6 +22,7 @@ import com.chargesquare.session.exception.StationServiceUnavailableException;
 import com.chargesquare.session.repository.ChargingSessionRepository;
 import com.chargesquare.session.repository.UserRepository;
 import com.chargesquare.session.repository.WalletRepository;
+import com.chargesquare.session.security.RequestActor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.when;
 class ChargingSessionServiceTest {
 
     private static final Instant NOW = Instant.parse("2026-07-11T12:00:00Z");
+    private static final RequestActor ADMIN = new RequestActor("admin", "ADMIN", "admin-token");
 
     @Mock private ChargingSessionRepository sessionRepository;
     @Mock private UserRepository userRepository;
@@ -65,10 +67,10 @@ class ChargingSessionServiceTest {
     void startsAnActiveSessionWithTheStationTariffSnapshot() {
         when(user.getId()).thenReturn(7L);
         when(userRepository.findById(7L)).thenReturn(Optional.of(user));
-        when(stationClient.getConnector(10L)).thenReturn(connector("AVAILABLE"));
+        when(stationClient.getConnector(10L, "admin-token")).thenReturn(connector("AVAILABLE"));
         when(sessionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var response = service.start(new StartSessionRequest(7L, 10L));
+        var response = service.start(new StartSessionRequest(7L, 10L), ADMIN);
 
         ArgumentCaptor<ChargingSession> captor = ArgumentCaptor.forClass(ChargingSession.class);
         verify(sessionRepository).save(captor.capture());
@@ -81,9 +83,9 @@ class ChargingSessionServiceTest {
     @Test
     void doesNotPersistWhenConnectorIsNotAvailable() {
         when(userRepository.findById(7L)).thenReturn(Optional.of(user));
-        when(stationClient.getConnector(10L)).thenReturn(connector("OCCUPIED"));
+        when(stationClient.getConnector(10L, "admin-token")).thenReturn(connector("OCCUPIED"));
 
-        assertThatThrownBy(() -> service.start(new StartSessionRequest(7L, 10L)))
+        assertThatThrownBy(() -> service.start(new StartSessionRequest(7L, 10L), ADMIN))
                 .isInstanceOf(ConnectorOccupiedException.class);
 
         verify(stationClient, never()).occupy(any());
@@ -93,10 +95,10 @@ class ChargingSessionServiceTest {
     @Test
     void doesNotPersistWhenOccupyFails() {
         when(userRepository.findById(7L)).thenReturn(Optional.of(user));
-        when(stationClient.getConnector(10L)).thenReturn(connector("AVAILABLE"));
+        when(stationClient.getConnector(10L, "admin-token")).thenReturn(connector("AVAILABLE"));
         org.mockito.Mockito.doThrow(new StationServiceUnavailableException()).when(stationClient).occupy(10L);
 
-        assertThatThrownBy(() -> service.start(new StartSessionRequest(7L, 10L)))
+        assertThatThrownBy(() -> service.start(new StartSessionRequest(7L, 10L), ADMIN))
                 .isInstanceOf(StationServiceUnavailableException.class);
 
         verify(sessionRepository, never()).save(any());
@@ -110,7 +112,8 @@ class ChargingSessionServiceTest {
         when(walletRepository.findByUserIdForUpdate(7L)).thenReturn(Optional.of(wallet));
         when(wallet.debit(new BigDecimal("108.25"))).thenReturn(new BigDecimal("391.75"));
 
-        StopSessionResponse receipt = service.stop(1L, new StopSessionRequest(new BigDecimal("12.5")));
+        StopSessionResponse receipt = service.stop(
+                1L, new StopSessionRequest(new BigDecimal("12.5")), ADMIN);
 
         assertThat(receipt.status()).isEqualTo("COMPLETED");
         assertThat(receipt.cost()).isEqualByComparingTo("108.25");
@@ -126,7 +129,7 @@ class ChargingSessionServiceTest {
         session.complete(BigDecimal.ONE, new BigDecimal("10.50"), NOW);
         when(sessionRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(session));
 
-        assertThatThrownBy(() -> service.stop(1L, new StopSessionRequest(BigDecimal.ONE)))
+        assertThatThrownBy(() -> service.stop(1L, new StopSessionRequest(BigDecimal.ONE), ADMIN))
                 .isInstanceOf(SessionNotActiveException.class);
 
         verify(walletRepository, never()).findByUserIdForUpdate(any());

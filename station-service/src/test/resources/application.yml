@@ -1,0 +1,8 @@
+security:
+  jwt:
+    signing-secret: test-signing-secret-with-at-least-32-bytes
+    issuer: chargesquare-session-service
+    audience: chargesquare-api
+
+panel:
+  allowed-origin: http://localhost:5173

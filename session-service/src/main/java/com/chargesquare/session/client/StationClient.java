@@ -1,8 +1,7 @@
 package com.chargesquare.session.client;
 
 public interface StationClient {
-    StationConnector getConnector(Long connectorId);
+    StationConnector getConnector(Long connectorId, String humanAccessToken);
     void occupy(Long connectorId);
     void release(Long connectorId);
 }
-

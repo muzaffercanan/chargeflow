@@ -20,6 +20,17 @@ spring:
         default_schema: ${SESSION_DB_SCHEMA:session}
     open-in-view: false
 
+security:
+  jwt:
+    signing-secret: ${JWT_SIGNING_SECRET}
+    access-token-ttl: ${JWT_ACCESS_TTL:15m}
+    service-token-ttl: ${JWT_SERVICE_TTL:60s}
+    issuer: ${JWT_ISSUER:chargesquare-session-service}
+    audience: ${JWT_AUDIENCE:chargesquare-api}
+
+panel:
+  allowed-origin: ${PANEL_ALLOWED_ORIGIN:http://localhost:5173}
+
 station-service:
   base-url: ${STATION_SERVICE_URL:http://localhost:8081}
   connect-timeout: ${STATION_CONNECT_TIMEOUT:2s}

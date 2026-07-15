@@ -2,6 +2,7 @@ package com.chargesquare.session.client;
 
 import java.time.Duration;
 
+import com.chargesquare.session.auth.ServiceTokenProvider;
 import com.chargesquare.session.exception.ConnectorNotFoundException;
 import com.chargesquare.session.exception.ConnectorOccupiedException;
 import com.chargesquare.session.exception.StationServiceUnavailableException;
@@ -19,28 +20,33 @@ import org.springframework.web.client.RestClientResponseException;
 public class RestStationClient implements StationClient {
 
     private final RestClient restClient;
+    private final ServiceTokenProvider serviceTokenProvider;
 
     @Autowired
     public RestStationClient(
             RestClient.Builder builder,
             @Value("${station-service.base-url}") String baseUrl,
             @Value("${station-service.connect-timeout}") Duration connectTimeout,
-            @Value("${station-service.read-timeout}") Duration readTimeout) {
+            @Value("${station-service.read-timeout}") Duration readTimeout,
+            ServiceTokenProvider serviceTokenProvider) {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setConnectTimeout(connectTimeout);
         requestFactory.setReadTimeout(readTimeout);
         this.restClient = builder.requestFactory(requestFactory).baseUrl(baseUrl).build();
+        this.serviceTokenProvider = serviceTokenProvider;
     }
 
-    RestStationClient(RestClient restClient) {
+    RestStationClient(RestClient restClient, ServiceTokenProvider serviceTokenProvider) {
         this.restClient = restClient;
+        this.serviceTokenProvider = serviceTokenProvider;
     }
 
     @Override
-    public StationConnector getConnector(Long connectorId) {
+    public StationConnector getConnector(Long connectorId, String humanAccessToken) {
         try {
             return restClient.get()
                     .uri("/connectors/{id}", connectorId)
+                    .headers(headers -> headers.setBearerAuth(humanAccessToken))
                     .retrieve()
                     .onStatus(status -> status.value() == 404,
                             (request, response) -> { throw new ConnectorNotFoundException(connectorId); })
@@ -68,6 +74,7 @@ public class RestStationClient implements StationClient {
         try {
             restClient.post()
                     .uri("/connectors/{id}/" + action, connectorId)
+                    .headers(headers -> headers.setBearerAuth(serviceTokenProvider.issueServiceToken()))
                     .retrieve()
                     .onStatus(status -> status.value() == 404,
                             (request, response) -> { throw new ConnectorNotFoundException(connectorId); })

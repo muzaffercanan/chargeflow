@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,6 +31,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,6 +73,7 @@ class SessionDependencyTimeoutIntegrationTest {
 
         long startedAt = System.nanoTime();
         mockMvc.perform(post("/sessions")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"userId\":7,\"connectorId\":10}"))
                 .andExpect(status().isServiceUnavailable())
@@ -85,6 +88,7 @@ class SessionDependencyTimeoutIntegrationTest {
     @Test
     void releaseTimeoutRollsBackSessionAndWalletAndCannotCommitLater() throws Exception {
         MvcResult startResult = mockMvc.perform(post("/sessions")
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"userId\":7,\"connectorId\":10}"))
                 .andExpect(status().isCreated())
@@ -95,6 +99,7 @@ class SessionDependencyTimeoutIntegrationTest {
 
         long startedAt = System.nanoTime();
         mockMvc.perform(post("/sessions/{id}/stop", sessionId)
+                        .with(admin())
                         .contentType(APPLICATION_JSON)
                         .content("{\"energyKwh\":12.5}"))
                 .andExpect(status().isServiceUnavailable())
@@ -119,6 +124,14 @@ class SessionDependencyTimeoutIntegrationTest {
         assertThat(session.getEnergyKwh()).isNull();
         assertThat(session.getCost()).isNull();
         assertThat(walletRepository.findById(7L).orElseThrow().getBalance()).isEqualByComparingTo("500.00");
+    }
+
+    private static org.springframework.test.web.servlet.request.RequestPostProcessor admin() {
+        return jwt().jwt(token -> token
+                        .tokenValue("admin-token")
+                        .subject("admin")
+                        .claim("role", "ADMIN"))
+                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
 
     private static final class DelayedStationServer {

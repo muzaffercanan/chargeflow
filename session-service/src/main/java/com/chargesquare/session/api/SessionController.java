@@ -4,9 +4,11 @@ import java.net.URI;
 import java.util.List;
 
 import com.chargesquare.session.service.ChargingSessionService;
+import com.chargesquare.session.security.RequestActor;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,16 +27,19 @@ public class SessionController {
     }
 
     @PostMapping("/sessions")
-    public ResponseEntity<SessionResponse> start(@Valid @RequestBody StartSessionRequest request) {
-        SessionResponse response = chargingSessionService.start(request);
+    public ResponseEntity<SessionResponse> start(
+            @Valid @RequestBody StartSessionRequest request,
+            Authentication authentication) {
+        SessionResponse response = chargingSessionService.start(request, RequestActor.from(authentication));
         return ResponseEntity.created(URI.create("/sessions/" + response.sessionId())).body(response);
     }
 
     @PostMapping("/sessions/{id}/stop")
     public StopSessionResponse stop(
             @PathVariable @Positive Long id,
-            @Valid @RequestBody StopSessionRequest request) {
-        return chargingSessionService.stop(id, request);
+            @Valid @RequestBody StopSessionRequest request,
+            Authentication authentication) {
+        return chargingSessionService.stop(id, request, RequestActor.from(authentication));
     }
 
     @GetMapping("/sessions/{id}")
@@ -47,4 +52,3 @@ public class SessionController {
         return chargingSessionService.getUserSessions(userId);
     }
 }
-
