@@ -31,6 +31,11 @@ security:
 panel:
   allowed-origin: ${PANEL_ALLOWED_ORIGIN:http://localhost:5173}
 
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    path: /swagger-ui.html
+
 station-service:
   base-url: ${STATION_SERVICE_URL:http://localhost:8081}
   connect-timeout: ${STATION_CONNECT_TIMEOUT:2s}

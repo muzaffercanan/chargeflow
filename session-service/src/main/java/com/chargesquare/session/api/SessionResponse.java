@@ -5,7 +5,9 @@ import java.time.Instant;
 
 import com.chargesquare.session.domain.ChargingSession;
 import com.chargesquare.session.domain.TariffSnapshot;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Active or completed charging-session record with its tariff snapshot.")
 public record SessionResponse(
         Long sessionId,
         Long userId,
@@ -31,4 +33,3 @@ public record SessionResponse(
                 new TariffSnapshotResponse(tariff.getPricePerKwh(), tariff.getStartFee(), tariff.getCurrency()));
     }
 }
-

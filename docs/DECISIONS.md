@@ -1,6 +1,6 @@
 # ChargeSquare Stage 1 and Stage 2 Decisions
 
-These decisions preserve the verified Stage 1 implementation and lock the authorized Stage 2 security/panel direction. `CASE_REQUIREMENTS.md` is the executable checklist; this file explains the chosen direction and its trade-offs.
+These decisions preserve the verified Stage 1 implementation, the authorized Stage 2 security/panel direction, and the later authorized reviewability improvements. `CASE_REQUIREMENTS.md` is the executable checklist; this file explains the chosen direction and its trade-offs.
 
 ## Locked technical decisions
 
@@ -33,6 +33,9 @@ These decisions preserve the verified Stage 1 implementation and lock the author
 | Browser storage | `sessionStorage` | It preserves a demo login across same-tab refreshes while limiting persistence; its XSS exposure is explicitly documented. |
 | Panel delivery | React/TypeScript/Vite build served by Nginx | A static SPA plus same-origin reverse proxy keeps deployment and browser configuration small. |
 | CORS | One environment-configured origin, no wildcard or credentials | Local Vite development works without broadening browser access unnecessarily. |
+| API documentation | Springdoc 2.8.x in each existing service | It is compatible with Spring Boot 3.5 and exposes reviewable contracts without a documentation service. |
+| Demo docs access | OpenAPI JSON and Swagger UI are public locally | Reviewers can inspect contracts immediately; documented domain operations retain their backend JWT enforcement. |
+| Operational verification | Bash, curl, and jq against Docker Compose | A small script proves the real authenticated HTTP path without adding application infrastructure. |
 
 ## Deterministic baseline data
 
@@ -47,7 +50,8 @@ The worked case remains: `12.5` kWh on connector `10` costs `108.25` TRY, leavin
 
 ## Explicit non-goals
 
-- No stretch goals: top-up, reservations, time-of-use pricing, real idempotency keys, stuck-connector cleanup, domain events, a separate Wallet Service, OpenAPI, or advanced observability.
+- No domain stretch goals: top-up, reservations, time-of-use pricing, real idempotency keys, stuck-connector cleanup, domain events, or a separate Wallet Service.
+- No observability platform, metrics stack, log aggregation, tracing infrastructure, or separate documentation service; only focused structured application logs and in-service OpenAPI are authorized.
 - No caching, rate limiting, service mesh, retries, backoff, fallback, broker, saga, exactly-once delivery, HPA, ingress, or refresh-token machinery.
 - No signup, password reset, OAuth login, separate identity provider, account lockout infrastructure, token revocation store, database-backed browser sessions, API gateway, or cookie/BFF implementation.
 - No cross-service table access; each service uses only its own schema and the Station Service API for station data.

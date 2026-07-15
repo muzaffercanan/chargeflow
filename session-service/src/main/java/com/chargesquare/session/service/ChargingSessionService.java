@@ -84,7 +84,7 @@ public class ChargingSessionService {
         ChargingSession session = sessionRepository.save(new ChargingSession(
                 user, request.connectorId(), Instant.now(clock), tariff));
         LOGGER.info(
-                "event=session_started actor={} role={} session_id={} user_id={} connector_id={}",
+                "event=session_started actor={} role={} sessionId={} userId={} connectorId={}",
                 actor.subject(), actor.role(), session.getId(), request.userId(), request.connectorId());
         return SessionResponse.from(session);
     }
@@ -104,14 +104,16 @@ public class ChargingSessionService {
         session.complete(request.energyKwh(), cost, Instant.now(clock));
 
         stationClient.release(session.getConnectorId());
-        LOGGER.info("event=connector_released connector_id={} session_id={}", session.getConnectorId(), sessionId);
-        LOGGER.info("event=cost_charged session_id={} amount={} currency={}",
+        LOGGER.info("event=connector_released connectorId={} sessionId={}", session.getConnectorId(), sessionId);
+        LOGGER.info("event=cost_charged sessionId={} cost={} currency={}",
                 sessionId, cost, session.getTariffSnapshot().getCurrency());
-        LOGGER.info("event=wallet_debited user_id={} amount={} balance_after={}",
-                session.getUserId(), cost, walletBalanceAfter);
+        LOGGER.info("event=wallet_debited sessionId={} userId={} cost={} currency={} balanceAfter={}",
+                sessionId, session.getUserId(), cost, session.getTariffSnapshot().getCurrency(), walletBalanceAfter);
         LOGGER.info(
-                "event=session_stopped actor={} role={} session_id={} user_id={} connector_id={}",
-                actor.subject(), actor.role(), sessionId, session.getUserId(), session.getConnectorId());
+                "event=session_stopped actor={} role={} sessionId={} userId={} connectorId={} "
+                        + "energyKwh={} cost={} currency={}",
+                actor.subject(), actor.role(), sessionId, session.getUserId(), session.getConnectorId(),
+                request.energyKwh(), cost, session.getTariffSnapshot().getCurrency());
         return StopSessionResponse.from(session, walletBalanceAfter);
     }
 

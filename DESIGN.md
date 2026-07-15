@@ -1,41 +1,25 @@
-# Stage 1 Lifecycle and Stage 2 Security Design
+# ChargeSquare Design Note
 
-## Boundaries and data
+## Boundaries and lifecycle
 
-There are exactly two runtime services. Station Service is the source of truth for stations, connectors, connector status, and tariffs. Session Service owns charging sessions, users, and the wallet module; wallet is deliberately not a third service because settlement belongs to the stop transaction. Both services use one PostgreSQL instance for easy local operation, but Station Service owns only the `station` schema and Session Service owns only the `session` schema. They never read one another's tables.
+ChargeSquare has exactly two backend services. Station Service owns stations, connectors, status, and tariffs. Session Service owns users, charging sessions, the wallet module, and the small authentication module. They share one PostgreSQL instance for local simplicity but own separate `station` and `session` schemas and never read one another's tables.
 
-Session Service reaches Station Service through synchronous REST (`RestClient`). This is the required network boundary and keeps the start/stop flow clear: read the connector, occupy or release it remotely, then persist the local session lifecycle. Connection and response waits are explicitly bounded by configurable timeouts (2 and 3 seconds by default). A connection failure, timeout, or unexpected Station response becomes the consistent `503 STATION_SERVICE_UNAVAILABLE` error. There are no hidden retries, fallback paths, brokers, or sagas in this stage.
+Session Service calls Station Service over real synchronous REST. Start verifies the user and an `AVAILABLE` connector, occupies it, snapshots its tariff, and persists an `ACTIVE` session. Stop locks the session row, requires `ACTIVE`, calculates and persists the bill, debits the wallet, completes the session, and releases the connector. Connection and read timeouts are environment-backed; an unavailable or timed-out Station dependency becomes `503 STATION_SERVICE_UNAVAILABLE` with no hidden retry.
 
-## Billing and settlement
+Energy, tariff values, cost, and balances use `BigDecimal`. The final rule is `energyKwh x pricePerKwh + startFee`, rounded once with `HALF_UP` to two decimals. A 12.5 kWh stop at 8.50 TRY/kWh plus 2.00 TRY costs 108.25 TRY. The tariff is snapshotted at start so a later tariff edit cannot rewrite an agreed bill. Timestamps use `Instant`, and duration does not affect this tariff. Wallet balances may become negative because delivered energy must still be settled.
 
-At start, Session Service verifies the user, requires the connector to be `AVAILABLE`, occupies it, and writes an `ACTIVE` session. It stores a tariff snapshot (price per kWh, start fee, and currency) with that session. This ensures a later station tariff edit cannot rewrite a bill already agreed at session start.
+## Consistency trade-offs
 
-Energy, tariff values, costs, and wallet balances use `BigDecimal`. Stop input is limited to the database's six fractional digits so the value billed is also the value persisted. The final calculation is `energyKwh × pricePerKwh + startFee`, rounded only at the final result to two decimal places using `HALF_UP`. Timestamps use `Instant`; duration is retained for the record but is not part of the price. The negative-balance policy is intentional: the wallet can fall below zero because the energy has already been delivered and must still be settled.
+The pessimistic lock and `ACTIVE` guard prevent a committed stop from charging twice: a repeat receives `409 SESSION_NOT_ACTIVE`. This is useful retry behavior, but it is not an idempotency-key protocol; after an ambiguous client timeout, the caller should read the session before deciding whether to retry.
 
-At stop, a pessimistic session row lock serializes settlement. Only an `ACTIVE` session may be completed, so a second stop sees `SESSION_NOT_ACTIVE` before any second debit. Session, wallet, and cost changes share one local database transaction; the connector release runs before that transaction commits. If release cannot connect or exceeds its response timeout, the exception causes the local debit and completion to roll back, leaving the session `ACTIVE` for a later explicit retry.
+The network and local database cannot form one atomic transaction. A remote occupy followed by a failed local insert can leave a connector `OCCUPIED`; a remote release followed by a failed local commit can leave an `ACTIVE` session beside an `AVAILABLE` connector. A release timeout rolls back local session/wallet changes, but it cannot prove the remote outcome. Reconciliation, durable messages, or compensating actions could address this in a larger system; they are deliberately documented rather than implemented here.
 
-## Failure trade-offs
+## Security and reviewability
 
-The state guard provides practical idempotent-retry reasoning for this limited API: a client retry after a completed stop cannot charge twice because the first committed stop changes the state away from `ACTIVE`. It is not a real idempotency-key protocol, and a retry after an ambiguous network outcome can still require the client to read the session before deciding what happened. Automatic retries are omitted because replaying occupy/release without an idempotency protocol could amplify that ambiguity.
+Session Service verifies BCrypt demo-user hashes and issues short-lived HS256 JWTs with subject, role, issuer, audience, issued-at, and expiry. Both services validate those claims. Human reads require `VIEWER` or `ADMIN`; session writes require `ADMIN`. Session Service creates an independent short-lived `SERVICE` token for Station occupy/release. Browser role checks are UX only; backend enforcement is authoritative. Full token storage, CORS, secret, audit, and limitation details are in [`SECURITY.md`](SECURITY.md).
 
-There remains a distributed partial-failure window. A successful remote occupy followed by a local insert failure can leave a connector stuck `OCCUPIED`; a successful remote release followed by a local commit failure can leave an `ACTIVE` session while the connector is `AVAILABLE`. A client-side response timeout bounds the local request but cannot prove whether a remote operation committed. Operational reconciliation could later detect stale sessions/connectors and repair them, or durable messages plus compensating actions could reduce the risk. Those approaches add failure modes and are deliberately not included here.
+Both services expose Springdoc OpenAPI JSON and Swagger UI in the local/demo configuration. The contracts document the Bearer scheme, role requirements, stable error body, important statuses, internal transitions, and worked start/stop billing examples. Focused logs use `key=value` events and relevant identifiers without credentials or tokens. `scripts/e2e-smoke.sh` exercises the real authenticated Compose path and is run by a separate CI job.
 
-## Authentication and token design
+## Deliberately not attempted
 
-Authentication is a small module inside Session Service, not a new service. Flyway creates exactly two human auth users and stores only BCrypt hashes. `POST /auth/login` verifies the hash and returns a short-lived HS256 JWT containing the subject, one human role, issued-at/expiry, issuer, and audience. Both backend services validate signature, issuer, audience, and time claims using Spring Security's standard resource-server/JOSE support. Expected filter failures use the same JSON API-error shape as the domain rather than an HTML login page.
-
-`VIEWER` and `ADMIN` live in human tokens because local stateless authorization is the smallest clear design for two services. The trade-off is that a role change or disable action cannot invalidate an already-issued token immediately; the short configurable TTL bounds that delay. HS256 similarly keeps the take-home small but makes the signing secret shared verification material. As the system grew, asymmetric signing would let one issuer hold the private key while resource services receive only public verification keys.
-
-The Station read performed during an ADMIN start delegates the already validated human bearer token, so the public connector read still enforces `VIEWER`/`ADMIN`. Occupy/release never reuse that browser credential. Session Service mints a fresh, short-lived `SERVICE` JWT with a narrow role for those two internal transitions. The browser neither receives nor controls this credential, and no token or Authorization header is logged.
-
-## Browser and network security
-
-The panel stores its access token, username, role, and expiry in `sessionStorage`. This is suitable for a same-tab demo and clears on explicit logout, expiry, or a backend 401, but JavaScript can read it and an XSS issue could steal it. A production alternative would be an `HttpOnly`, `Secure`, `SameSite` cookie issued by a BFF; that reduces JavaScript token exposure while requiring an explicit CSRF strategy and additional deployment complexity.
-
-Frontend role checks only tailor the interface. The backend independently enforces every read and write. Direct calls from a VIEWER therefore receive 403 even if the caller modifies the browser UI. CORS allows one environment-configured origin, the required headers/methods, no wildcard, and no credentials. Production Nginx uses same-origin `/api/session` and `/api/station` proxies and SPA fallback routing.
-
-Security-sensitive logs record successful and failed login plus the actor subject/role and relevant session, user, and connector identifiers on start/stop. They intentionally omit passwords, JWTs, signing secrets, SERVICE credentials, and Authorization headers. These logs provide a small operational audit trail without pretending to be a durable compliance event store.
-
-## Not attempted
-
-Refresh tokens, signup, password reset, OAuth login, token revocation, account lockout, a separate identity provider, cookie/BFF auth, real idempotency keys, automatic retries, circuit breakers, brokers, sagas, distributed transactions, stuck-connector cleanup, caching, service mesh, and the other stretch goals were not implemented.
+No Wallet Service, reservation, richer tariff, broker/event pipeline, idempotency-key infrastructure, retry or circuit-breaker framework, reconciliation scheduler, API gateway, refresh token, rate limiter, metrics/logging platform, cache, service mesh, saga, or distributed transaction was added. Kubernetes is represented by offline-validatable manifests, not a claimed live-cluster deployment.

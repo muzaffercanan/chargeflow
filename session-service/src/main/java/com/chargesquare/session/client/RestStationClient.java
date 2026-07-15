@@ -1,5 +1,6 @@
 package com.chargesquare.session.client;
 
+import java.net.SocketTimeoutException;
 import java.time.Duration;
 
 import com.chargesquare.session.auth.ServiceTokenProvider;
@@ -10,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -18,6 +21,8 @@ import org.springframework.web.client.RestClientResponseException;
 
 @Component
 public class RestStationClient implements StationClient {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RestStationClient.class);
 
     private final RestClient restClient;
     private final ServiceTokenProvider serviceTokenProvider;
@@ -52,6 +57,7 @@ public class RestStationClient implements StationClient {
                             (request, response) -> { throw new ConnectorNotFoundException(connectorId); })
                     .body(StationConnector.class);
         } catch (ResourceAccessException exception) {
+            logDependencyFailure(exception, "get_connector", connectorId);
             throw new StationServiceUnavailableException();
         } catch (RestClientResponseException exception) {
             throw mapUnexpectedResponse(exception.getStatusCode(), connectorId);
@@ -82,6 +88,7 @@ public class RestStationClient implements StationClient {
                             (request, response) -> { throw new ConnectorOccupiedException(connectorId); })
                     .toBodilessEntity();
         } catch (ResourceAccessException exception) {
+            logDependencyFailure(exception, action, connectorId);
             throw new StationServiceUnavailableException();
         } catch (RestClientResponseException exception) {
             throw mapUnexpectedResponse(exception.getStatusCode(), connectorId);
@@ -98,5 +105,24 @@ public class RestStationClient implements StationClient {
             return new ConnectorOccupiedException(connectorId);
         }
         return new StationServiceUnavailableException();
+    }
+
+    private void logDependencyFailure(ResourceAccessException exception, String operation, Long connectorId) {
+        if (hasCause(exception, SocketTimeoutException.class)) {
+            LOGGER.warn("event=station_dependency_timeout operation={} connectorId={}", operation, connectorId);
+            return;
+        }
+        LOGGER.warn("event=station_dependency_unavailable operation={} connectorId={}", operation, connectorId);
+    }
+
+    private boolean hasCause(Throwable throwable, Class<? extends Throwable> causeType) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (causeType.isInstance(current)) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

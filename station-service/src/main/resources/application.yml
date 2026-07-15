@@ -29,6 +29,11 @@ security:
 panel:
   allowed-origin: ${PANEL_ALLOWED_ORIGIN:http://localhost:5173}
 
+springdoc:
+  show-actuator: true
+  swagger-ui:
+    path: /swagger-ui.html
+
 server:
   port: ${STATION_SERVICE_PORT:8081}
 

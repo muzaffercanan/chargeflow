@@ -113,3 +113,15 @@ Status is intentionally conservative: an item is checked only when the correspon
 - [x] Run a clean four-container Compose startup and live VIEWER/ADMIN/internal-service flow.
 - [x] Verify SPA direct-route refresh, dependency timeout regression, and persistence restart.
 - [x] Complete tracked-secret and final diff inspection.
+
+## Final Reviewability Improvements
+
+- [x] Add root `SECURITY.md` covering implemented controls, trade-offs, audit events, and honest limitations.
+- [x] Add compatible Springdoc OpenAPI/Swagger dependencies and documentation to both services.
+- [x] Permit local/demo OpenAPI endpoints while preserving JWT authorization on domain operations.
+- [x] Add the authenticated Docker Compose E2E smoke script with robust `jq` assertions.
+- [x] Add a separate CI E2E job with health waiting, failure logs, and unconditional scoped teardown.
+- [x] Reconcile the required operational events to consistent `key=value` log fields.
+- [x] Reconcile README, DESIGN, and locked decisions with the final authorized scope.
+- [x] Run and record the complete final verification matrix.
+- [ ] Record the human author's honest focused-hour total in README.

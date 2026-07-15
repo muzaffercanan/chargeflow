@@ -7,7 +7,10 @@ import java.util.List;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +31,8 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -35,6 +40,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfig {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Bean
     SecurityFilterChain securityFilterChain(
@@ -46,9 +53,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((request, response, exception) -> authenticationRequired(response))
-                        .accessDeniedHandler((request, response, exception) -> accessDenied(response)))
+                        .accessDeniedHandler((request, response, exception) -> accessDenied(request, response)))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/health", "/health/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/connectors/**", "/stations/**")
                             .hasAnyRole("VIEWER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/connectors/*/occupy", "/connectors/*/release")
@@ -114,9 +122,29 @@ public class SecurityConfig {
                 "AUTHENTICATION_REQUIRED", "Authentication is required");
     }
 
-    private void accessDenied(HttpServletResponse response) throws IOException {
+    private void accessDenied(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        LOGGER.warn("event=authorization_failed actor={} role={} method={} path={}",
+                authentication == null ? "anonymous" : safeForLog(authentication.getName()),
+                role(authentication), request.getMethod(), safeForLog(request.getRequestURI()));
         writeError(response, HttpServletResponse.SC_FORBIDDEN,
                 "ACCESS_DENIED", "You do not have permission to perform this operation");
+    }
+
+    private String role(Authentication authentication) {
+        if (authentication == null) {
+            return "anonymous";
+        }
+        return authentication.getAuthorities().stream()
+                .map(authority -> authority.getAuthority())
+                .filter(authority -> authority.startsWith("ROLE_"))
+                .map(authority -> authority.substring("ROLE_".length()))
+                .findFirst()
+                .orElse("unknown");
+    }
+
+    private String safeForLog(String value) {
+        return value.replaceAll("[\\r\\n\\t]", "_");
     }
 
     private void writeError(HttpServletResponse response, int status, String error, String message) throws IOException {

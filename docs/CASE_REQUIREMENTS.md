@@ -153,7 +153,7 @@ Reference: PDF Sections 3.10, 3.11, 3.12, 5, 6, 8.2, and 9.2.
 - [x] Document the Java/Spring/PostgreSQL stack and why it was chosen.
 - [x] Document how to run tests.
 - [x] Document assumptions, including simulated meter energy and the negative-wallet policy.
-- [ ] Replace `[ACTUAL_FOCUSED_HOURS]` with the human author's honest time spent; keep the documented limitations/not-attempted notes.
+- [ ] Record the human author's honest focused-hour total; it was not supplied during the final automated audit.
 - [x] Add `DESIGN.md`, or an equivalent design section in the README, covering key decisions and unfinished work.
 - [x] Explain decimal-safe money and final rounding.
 - [x] Explain the wallet placement trade-off.
@@ -168,7 +168,7 @@ Reference: PDF Sections 3.10, 3.11, 3.12, 5, 6, 8.2, and 9.2.
 Reference: PDF Sections 3.10, 4, and 7.
 
 - [x] Complete and verify Stage 1 before adding the separately authorized Stage 2 slice below.
-- [x] Do not implement stretch goals such as wallet top-up, reservations, time-of-use tariffs, real idempotency keys, stuck-connector cleanup, domain events, a third Wallet Service, or OpenAPI/advanced observability.
+- [x] Complete the Stage 1 baseline without wallet top-up, reservations, time-of-use tariffs, real idempotency keys, stuck-connector cleanup, domain events, a third Wallet Service, OpenAPI, or advanced observability before separately authorized later work.
 
 ## Stage 2 authentication and authorization
 
@@ -213,3 +213,14 @@ Reference: PDF Sections 4.1, 4.2, 4.3.1, 4.4, and 4.5.
 
 - [x] Do not add refresh tokens, signup, password reset, OAuth login, token revocation, account lockout, a separate identity provider, API gateway, or database-backed browser sessions.
 - [x] Do not add wallet top-up, reservations, richer tariffs, a Wallet Service, broker/event machinery, retry framework, or another Stage 1 stretch goal.
+
+## Final authorized reviewability improvements
+
+- [x] Add a substantive root `SECURITY.md` that matches the implemented auth, token storage, CORS, secrets, audit logging, and limitations.
+- [x] Add Springdoc OpenAPI/Swagger to both existing services with Bearer security, role requirements, schemas, status codes, error contracts, and worked billing examples.
+- [x] Keep local/demo documentation endpoints public without weakening domain endpoint authorization.
+- [x] Add `scripts/e2e-smoke.sh` for the real authenticated Compose path using `curl` and `jq` without hardcoded generated session ids.
+- [x] Add a separate CI E2E job with health waiting, failure logs, and unconditional project-scoped teardown; keep the original job intact.
+- [x] Use focused `key=value` logs for required authentication, lifecycle, wallet, connector, authorization, and timeout events without sensitive values.
+- [x] Reconcile README, DESIGN, decisions, and internal checklists without adding domain features.
+- [x] Complete and record the final verification matrix after all changes.

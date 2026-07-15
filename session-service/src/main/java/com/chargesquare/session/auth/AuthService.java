@@ -33,12 +33,12 @@ public class AuthService {
         String passwordHash = user == null ? DUMMY_PASSWORD_HASH : user.getPasswordHash();
         boolean passwordMatches = passwordEncoder.matches(request.password(), passwordHash);
         if (user == null || !user.isEnabled() || !passwordMatches) {
-            LOGGER.warn("event=login_failed username={} reason=invalid_credentials", safeForLog(username));
+            LOGGER.warn("event=login_failed actor={} reason=invalid_credentials", safeForLog(username));
             throw new InvalidCredentialsException();
         }
 
         JwtTokenService.IssuedAccessToken issuedToken = jwtTokenService.issueAccessToken(user);
-        LOGGER.info("event=login_success actor={} role={}", user.getUsername(), user.getRole());
+        LOGGER.info("event=login_succeeded actor={} role={}", user.getUsername(), user.getRole());
         return new LoginResponse(
                 issuedToken.value(),
                 "Bearer",

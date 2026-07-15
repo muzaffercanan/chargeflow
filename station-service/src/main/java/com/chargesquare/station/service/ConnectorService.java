@@ -54,7 +54,7 @@ public class ConnectorService {
                 ConnectorStatus.OCCUPIED);
 
         if (updatedRows == 1) {
-            LOGGER.info("Connector {} occupied", connectorId);
+            LOGGER.info("event=connector_occupied connectorId={}", connectorId);
             return new ConnectorStatusResponse(connectorId, ConnectorStatus.OCCUPIED);
         }
 
@@ -72,7 +72,7 @@ public class ConnectorService {
             throw new ConnectorNotFoundException(connectorId);
         }
 
-        LOGGER.info("Connector {} released", connectorId);
+        LOGGER.info("event=connector_released connectorId={}", connectorId);
         return new ConnectorStatusResponse(connectorId, ConnectorStatus.AVAILABLE);
     }
 
