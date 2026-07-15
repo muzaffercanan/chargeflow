@@ -4,7 +4,7 @@
 
 Before changing the repository, read these files in order:
 
-1. `docs/CASE_REQUIREMENTS.md` - the mandatory Stage 1 checklist.
+1. `docs/CASE_REQUIREMENTS.md` - the mandatory Stage 1 baseline and authorized Stage 2 checklist.
 2. `docs/DECISIONS.md` - the locked technical choices and non-goals.
 3. `docs/TASKS.md` - the implementation status and remaining work.
 
@@ -12,9 +12,10 @@ If another instruction conflicts with the requirements or decisions, stop and re
 
 ## Scope restrictions
 
-- This repository contains only Station Service and Session Service.
+- This repository contains exactly two backend services (Station Service and Session Service) plus the static Stage 2 panel.
 - Wallet remains a module inside Session Service.
-- Do not add Stage 2, authentication, authorization, or stretch goals.
+- Stage 2 authentication, authorization, and the four-screen operations panel are in scope.
+- Do not add auth extensions such as refresh tokens, signup, password reset, OAuth login, token revocation, account lockout, or a separate identity provider.
 - Do not add a third service, broker, saga, cache, service mesh, retry framework, or cross-service table access.
 - Each service may access only its own PostgreSQL schema; cross-service data is accessed through the owning service's REST API.
 

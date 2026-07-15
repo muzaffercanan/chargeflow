@@ -74,10 +74,42 @@ Status is intentionally conservative: an item is checked only when the correspon
 ## Final Audit
 
 - [x] Confirm every checked requirement in `CASE_REQUIREMENTS.md` is implemented and tested.
-- [x] Confirm no Stage 2 or stretch-goal artifacts were added.
+- [x] Confirm the Stage 1 baseline contained no premature Stage 2 or stretch-goal artifacts before Stage 2 began.
 - [x] Confirm no secrets or live `.env` files are committed.
 - [x] Confirm no cross-service table access exists.
 - [x] Run the root Maven test command.
 - [x] Run the documented Compose flow.
 - [x] Attempt kubectl client dry-run and validate all five Kubernetes resources offline with kubeconform.
 - [x] Review README examples against the actual API responses.
+
+## Stage 2 Backend Security
+
+- [x] Add persisted BCrypt-only VIEWER and ADMIN demo users inside Session Service.
+- [x] Implement `POST /auth/login` with short-lived environment-configured JWTs.
+- [x] Validate signature, issuer, audience, and expiry in both backend services.
+- [x] Enforce VIEWER/ADMIN reads, ADMIN session writes, and SERVICE/ADMIN Station transitions.
+- [x] Return the consistent JSON API error body for 401 and 403 responses.
+- [x] Generate a separate short-lived SERVICE JWT for occupy/release calls.
+- [x] Add explicit single-origin CORS configuration without credentials.
+- [x] Add actor/role security logs without passwords, JWTs, secrets, or headers.
+- [x] Add focused authentication, expiry, authorization, and regression tests.
+
+## Stage 2 Panel
+
+- [x] Add the React/TypeScript/Vite login screen.
+- [x] Add stations/connectors, sessions, and receipt/detail screens.
+- [x] Add ADMIN stop-session UX and VIEWER read-only UX.
+- [x] Persist the demo tab session in `sessionStorage` and handle expiry/401 logout.
+- [x] Add a centralized API client with 400/401/403/404/409/503 messages.
+- [x] Add focused Vitest/React Testing Library coverage.
+- [x] Add the panel Nginx image, SPA fallback, API proxies, and healthcheck.
+- [x] Add the panel to Compose and CI.
+
+## Stage 2 Verification
+
+- [x] Run frontend tests, production build, dependency audit, panel image build, and Compose config.
+- [x] Run complete Maven test and verify after all changes.
+- [x] Build both backend images after all changes.
+- [x] Run a clean four-container Compose startup and live VIEWER/ADMIN/internal-service flow.
+- [x] Verify SPA direct-route refresh, dependency timeout regression, and persistence restart.
+- [x] Complete tracked-secret and final diff inspection.
