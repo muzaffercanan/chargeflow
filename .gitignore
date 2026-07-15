@@ -1,6 +1,11 @@
 # Build output
 target/
 **/target/
+panel/node_modules/
+panel/dist/
+panel/*.tsbuildinfo
+panel/vite.config.js
+panel/vite.config.d.ts
 
 # IDE files
 .idea/

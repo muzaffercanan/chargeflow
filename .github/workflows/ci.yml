@@ -30,8 +30,26 @@ jobs:
       - name: Run all tests
         run: ./mvnw -B test
 
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: panel/package-lock.json
+
+      - name: Install panel dependencies
+        working-directory: panel
+        run: npm ci
+
+      - name: Test and build panel
+        working-directory: panel
+        run: npm test && npm run build
+
       - name: Build Station Service image
         run: docker build --tag chargesquare/station-service:ci --file station-service/Dockerfile .
 
       - name: Build Session Service image
         run: docker build --tag chargesquare/session-service:ci --file session-service/Dockerfile .
+
+      - name: Build Panel image
+        run: docker build --tag chargesquare/panel:ci --file panel/Dockerfile .
