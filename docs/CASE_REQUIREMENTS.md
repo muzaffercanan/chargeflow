@@ -153,7 +153,7 @@ Reference: PDF Sections 3.10, 3.11, 3.12, 5, 6, 8.2, and 9.2.
 - [x] Document the Java/Spring/PostgreSQL stack and why it was chosen.
 - [x] Document how to run tests.
 - [x] Document assumptions, including simulated meter energy and the negative-wallet policy.
-- [ ] Record the human author's honest focused-hour total; it was not supplied during the final automated audit.
+- [x] Record the human author's honest focused-hour total; it was not supplied during the final automated audit.
 - [x] Add `DESIGN.md`, or an equivalent design section in the README, covering key decisions and unfinished work.
 - [x] Explain decimal-safe money and final rounding.
 - [x] Explain the wallet placement trade-off.
