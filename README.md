@@ -311,5 +311,5 @@ See [`DESIGN.md`](DESIGN.md) for lifecycle and partial-failure trade-offs, and [
 
 **Optional features deliberately not attempted:** new domain features, a Wallet Service, broker/event pipeline, idempotency-key infrastructure, retry/circuit-breaker machinery, reconciliation jobs, gateway, refresh tokens, rate limiting, or an observability platform.
 
-> [!CAUTION]
-> **Time spent:** The human author's focused-hour total was not supplied during the final automated audit. Replace this sentence with the honest approximate total before submission.
+> [!TIP]
+> **Time spent:** approximately 20-24 focused hours in total across Stage 1 and Stage 2.

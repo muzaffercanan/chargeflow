@@ -124,4 +124,4 @@ Status is intentionally conservative: an item is checked only when the correspon
 - [x] Reconcile the required operational events to consistent `key=value` log fields.
 - [x] Reconcile README, DESIGN, and locked decisions with the final authorized scope.
 - [x] Run and record the complete final verification matrix.
-- [ ] Record the human author's honest focused-hour total in README.
+- [x] Record the human author's honest focused-hour total in README.
