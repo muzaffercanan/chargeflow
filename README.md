@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ ChargeSquare Stage 1 + Stage 2
+# ⚡ Chargeflow Stage 1 + Stage 2
 
 [![CI](https://github.com/muzaffercanan/chargeflow/actions/workflows/ci.yml/badge.svg)](https://github.com/muzaffercanan/chargeflow/actions/workflows/ci.yml)
 ![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk&logoColor=white)
@@ -13,7 +13,7 @@
 
 </div>
 
-ChargeSquare implements the complete charging-session slice and the optional secured operations panel. The repository still has exactly two backend services: Station Service owns stations, connectors, statuses, and tariffs; Session Service owns sessions, the wallet module, and the small authentication module. A React panel is built as static files and served by Nginx; it is not a third backend service.
+Chargeflow implements the complete charging-session slice and the optional secured operations panel. The repository still has exactly two backend services: Station Service owns stations, connectors, statuses, and tariffs; Session Service owns sessions, the wallet module, and the small authentication module. A React panel is built as static files and served by Nginx; it is not a third backend service.
 
 Stage 1 remains the regression baseline: `START -> STOP -> BILL -> SETTLE`, PostgreSQL persistence, decimal-safe billing, guarded state transitions, synchronous Session-to-Station REST, Docker, Kubernetes manifests, CI, and focused tests. Stage 2 adds login, JWT validation in both services, backend-enforced RBAC, independent service credentials, and four panel screens. Final optional work adds API documentation, focused structured logs, and a real authenticated Compose smoke test without adding domain features or runtime services.
 
