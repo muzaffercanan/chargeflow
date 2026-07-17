@@ -295,6 +295,27 @@ See [`DESIGN.md`](DESIGN.md) for lifecycle and partial-failure trade-offs, and [
 
 ---
 
+## 🧭 Why I chose these decisions
+
+Every open decision in the case study had two or three reasonable options. This section names the alternatives I considered and why I picked the one I shipped.
+
+| Decision | What I chose | Alternatives I considered | Why this one |
+| :--- | :--- | :--- | :--- |
+| Language & framework | Java 21 + Spring Boot 3.5 | Node/Express, Python/FastAPI | It is the stack I would use here day to day, and Spring gives validation, JPA/Flyway, Actuator health, and Security as integrated pieces instead of assembled libraries. |
+| Database | One PostgreSQL instance, `station` and `session` schemas | One database per service; embedded H2 | A single container is the simplest thing that clearly works, while separate schemas still keep service data ownership explicit; per-service databases add operational cost without demonstrating more in this slice. |
+| Service communication | Synchronous REST for both the Station call and wallet settlement | Additionally emitting a `SessionCompleted` event | The required Session-to-Station call must be synchronous anyway, and a second delivery mechanism for the wallet would add moving parts without adding correctness to this flow. |
+| Repo layout | Monorepo | Multi-repo | One checkout builds, tests, and reviews everything together; the cost I accept is coupled versioning if the services ever diverge. |
+| Wallet placement | Wallet module inside Session Service | A third standalone Wallet Service | Settlement belongs inside the session-stop transaction; folding it in avoids a network hop and a distributed-transaction problem the case explicitly says not to solve. |
+| Tariff on a session | Snapshot at start | Re-look-up at stop | A price change mid-session must not rewrite an already-agreed bill, so the session carries its own pricing. |
+| Insufficient balance | Allow the wallet to go negative | Reject the stop | The energy was already delivered, so the stop must stay truthful and settle; rejecting it would leave a completed physical charge unbilled. |
+| Dependency-down behaviour | Fail fast with bounded timeouts and a `503` JSON error | Brief retries; fallback values | A clear deterministic error is safe, while retrying a non-idempotent occupy/release could double-apply state transitions; the trade-off is that transient blips surface to the caller. |
+| Where auth lives | Small persisted module inside Session Service | A third auth service; a gateway | Two services stay two services; credentials still live in their own tables away from the charging domain. |
+| Token validation | Shared HS256 secret verified independently by both services | Asymmetric keys; central introspection | For exactly two tightly controlled services a shared secret is the smallest correct option; with more services I would switch to asymmetric signing so only one party holds signing material. |
+| Roles in the token | Role as a JWT claim | Server-side role lookup per request | Claims keep authorization stateless and fast; the accepted trade-off is that a role change only takes effect when the short-lived token expires. |
+| Browser token storage | `sessionStorage` | In-memory only; `HttpOnly` cookie | It survives a same-tab refresh (which a demo reviewer will do) while limiting persistence; the XSS exposure is documented, and the cookie/BFF alternative would pull in CSRF design work beyond this scope. |
+
+---
+
 ## 📋 Assumptions, exclusions, and known limitations
 
 - Meter energy is supplied by the stop request; no physical meter integration exists.
@@ -310,6 +331,20 @@ See [`DESIGN.md`](DESIGN.md) for lifecycle and partial-failure trade-offs, and [
 **Optional features attempted:** complete Stage 2 authentication/RBAC backend and four-screen operations panel; root security design; Springdoc OpenAPI/Swagger for both services; focused structured operational logs; and an authenticated cross-service Compose smoke test with CI execution.
 
 **Optional features deliberately not attempted:** new domain features, a Wallet Service, broker/event pipeline, idempotency-key infrastructure, retry/circuit-breaker machinery, reconciliation jobs, gateway, refresh tokens, rate limiting, or an observability platform.
+
+---
+
+## 🔮 What I would do next
+
+Roughly in the order I would tackle them:
+
+1. **Real idempotent stop.** Accept an idempotency key on `POST /sessions/{id}/stop` so a retried stop returns the original receipt instead of a `409`, making client retries fully safe after a lost response.
+2. **Stuck-connector reconciliation.** A small periodic job that finds connectors left `OCCUPIED` without a matching `ACTIVE` session (the occupy-succeeded/insert-failed window documented in `DESIGN.md`) and releases them after a timeout.
+3. **Wallet top-up.** A `POST /users/{id}/wallet/topup` endpoint plus an ADMIN panel action, showing the balance rise and fall across a session.
+4. **A `SessionCompleted` domain event.** Emit one event on stop with an idempotent wallet consumer — the stepping stone toward splitting a real Wallet Service as a second clean boundary.
+5. **Auth hardening.** Short-lived refresh tokens or an `HttpOnly` cookie/BFF for the panel, asymmetric JWT signing, and login rate limiting/lockout, in that order.
+6. **Observability.** Micrometer metrics and trace propagation across the Session-to-Station call, so the timeout and 503 paths become measurable instead of only logged.
+7. **Kubernetes completion.** A panel Deployment/Service plus ingress, and validation against a real cluster instead of offline schema checks.
 
 > [!TIP]
 > **Time spent:** approximately 20-24 focused hours in total across Stage 1 and Stage 2.
